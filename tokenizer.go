@@ -1,33 +1,54 @@
 package main
 
-type token struct {
-	Type   tokenType
-	Value  string
-	Line   int
-	Column int
-}
+import (
+	"regexp"
+)
 
-func (t *token) equal(t2 token) bool {
-	return t.Type == t2.Type &&
-		t.Value == t2.Value &&
-		t.Line == t2.Line &&
-		t.Column == t2.Column
-}
+// TODO: Can this use the regexp.syntax package instead? "Package syntax
+//       parses regular expressions into parse trees and compiles parse trees
+//       into programs."
 
-type tokenType string
-
-// TODO: Change this to an io.Reader type, for flexibility in input
+// TODO: Change the source to an io.Reader type, for flexibility in input
 type tokenizer struct {
-	source string
+	source  string
+	rules   []rule
+	pointer int
 }
 
-func (tz *tokenizer) next() token {
-	// TODO: Parse the input for this data. This is currently not functional
-	// TODO: Allow the parsing rules to be customized
-	return token{
-		Type:   tokenType("Identifier"),
-		Value:  tz.source,
-		Line:   1,
-		Column: 1,
+// TODO: Can I rewrite this with the io.Read interface?
+func (tz *tokenizer) next() (token, error) {
+	searchSpace := tz.source[tz.pointer:]
+
+	for _, r := range tz.rules {
+
+		re, err := regexp.Compile(r.pattern)
+		if err != nil {
+			return token{}, err
+		}
+
+		match := re.FindString(searchSpace)
+		if len(match) > 0 {
+			// TODO: This should be moved forward until after the newly found
+			//       token, rather than just moving incrementally forward
+			tz.pointer++
+
+			// TODO: Parse for line and column numbers
+			return token{
+				Type:   tokenType(r.name),
+				Value:  match,
+				Line:   1,
+				Column: 1,
+			}, nil
+		}
 	}
+
+	return token{}, nil
+}
+
+func (tz *tokenizer) addRule(r rule) {
+	tz.rules = append(tz.rules, r)
+}
+
+func (tz *tokenizer) reset() {
+	tz.pointer = 0
 }

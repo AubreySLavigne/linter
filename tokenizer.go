@@ -27,7 +27,8 @@ func (tz *tokenizer) next() (token, error) {
 		}
 
 		match := re.FindString(searchSpace)
-		if len(match) > 0 {
+		matchLen := len(match)
+		if matchLen > 0 {
 			// TODO: This should be moved forward until after the newly found
 			//       token, rather than just moving incrementally forward
 			tz.pointer++
@@ -36,8 +37,8 @@ func (tz *tokenizer) next() (token, error) {
 			return token{
 				Type:   tokenType(r.name),
 				Value:  match,
-				Line:   1,
-				Column: 1,
+				Line:   0,
+				Column: 0,
 			}, nil
 		}
 	}

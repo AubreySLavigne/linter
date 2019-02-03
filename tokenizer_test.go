@@ -12,6 +12,10 @@ func TestParseTokens(t *testing.T) {
 	}{
 		{input: "input", expects: []token{{Type: tokenType("Identifier"), Value: "input", Line: 0, Column: 0}}},
 		{input: "{", expects: []token{{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 0}, {}}},
+		{input: "input {", expects: []token{
+			{Type: tokenType("Identifier"), Value: "input", Line: 0, Column: 0},
+			{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 6},
+		}},
 		{input: "1234", expects: []token{}},
 	}
 
@@ -25,12 +29,12 @@ func TestParseTokens(t *testing.T) {
 		tz.reset()
 
 		// Run test
-		for _, expectedToken := range test.expects {
+		for index, expectedToken := range test.expects {
 			res, err := tz.next()
 			if err != nil {
-				t.Errorf("Unexpected Error during test %v: %s", test, err)
+				t.Errorf("Unexpected Error during test %v [Index: %d]: %s", expectedToken, index, err)
 			} else if !res.equal(expectedToken) {
-				t.Errorf("Parsed Token does not match expected for input '%s'. Got %v, expected %v", tz.source, res, test.expects)
+				t.Errorf("Parsed Token does not match expected for input '%s' [Index: %d]. Got %v, expected %v", tz.source, index, res, expectedToken)
 			}
 		}
 	}

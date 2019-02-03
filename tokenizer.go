@@ -15,35 +15,47 @@ type tokenizer struct {
 	pointer int
 }
 
-// TODO: Can I rewrite this with the io.Read interface?
 func (tz *tokenizer) next() (token, error) {
-	searchSpace := tz.source[tz.pointer:]
 
-	for _, r := range tz.rules {
-
-		re, err := regexp.Compile(r.pattern)
-		if err != nil {
-			return token{}, err
-		}
-
-		match := re.FindString(searchSpace)
-		matchLen := len(match)
-		if matchLen > 0 {
-			// TODO: This should be moved forward until after the newly found
-			//       token, rather than just moving incrementally forward
-			tz.pointer++
-
-			// TODO: Parse for line and column numbers
-			return token{
-				Type:   tokenType(r.name),
-				Value:  match,
-				Line:   0,
-				Column: 0,
-			}, nil
-		}
+	matches, err := tz.findUpcomingMatches()
+	if err != nil {
+		return token{}, err
+	}
+	if len(matches) == 0 {
+		return token{}, nil
 	}
 
-	return token{}, nil
+	t := matches[0]
+
+	tz.pointer += len(t.Value)
+
+	return t, nil
+}
+
+func (tz *tokenizer) findUpcomingMatches() ([]token, error) {
+	searchSpace := tz.source[tz.pointer:]
+
+	var res []token
+	for _, r := range tz.rules {
+		re, err := regexp.Compile(r.pattern)
+		if err != nil {
+			return nil, err
+		}
+
+		loc := re.FindIndex([]byte(searchSpace))
+		if loc == nil {
+			continue
+		}
+
+		res = append(res, token{
+			Type:   tokenType(r.name),
+			Value:  searchSpace[loc[0]:loc[1]],
+			Line:   0,
+			Column: tz.pointer + loc[0],
+		})
+	}
+
+	return res, nil
 }
 
 func (tz *tokenizer) addRule(r rule) {

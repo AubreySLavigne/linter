@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTokenEqual(t *testing.T) {
 	tests := []struct {
@@ -9,29 +11,34 @@ func TestTokenEqual(t *testing.T) {
 		expects bool
 	}{
 		{
-			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23},
-			token2:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23},
+			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 205},
+			token2:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 205},
 			expects: true,
 		},
 		{
-			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23},
-			token2:  token{Type: tokenType("different"), Value: "test", Line: 15, Column: 23},
+			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 205},
+			token2:  token{Type: tokenType("different"), Value: "test", Line: 15, Column: 23, Index: 205},
 			expects: false,
 		},
 		{
-			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23},
-			token2:  token{Type: tokenType("type1"), Value: "different", Line: 15, Column: 23},
+			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 205},
+			token2:  token{Type: tokenType("type1"), Value: "different", Line: 15, Column: 23, Index: 205},
 			expects: false,
 		},
 		{
-			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23},
-			token2:  token{Type: tokenType("type1"), Value: "test", Line: 200, Column: 23},
+			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 205},
+			token2:  token{Type: tokenType("type1"), Value: "test", Line: 200, Column: 23, Index: 205},
 			expects: false,
 		},
 		{
-			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23},
-			token2:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 11},
+			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 205},
+			token2:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 11, Index: 205},
 			expects: false,
+		},
+		{
+			token1:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 205},
+			token2:  token{Type: tokenType("type1"), Value: "test", Line: 15, Column: 23, Index: 134},
+			expects: true,
 		},
 	}
 
@@ -43,5 +50,49 @@ func TestTokenEqual(t *testing.T) {
 				t.Errorf("Token %v matches token %v when it should not.", test.token1, test.token2)
 			}
 		}
+	}
+}
+
+func TestIsEarlier(t *testing.T) {
+	tests := []struct {
+		t1      token
+		t2      token
+		expects bool
+	}{
+		{
+			t1:      token{Type: tokenType("Identifier"), Value: "beats", Line: 1, Column: 5},
+			t2:      token{Type: tokenType("Identifier"), Value: "beats", Line: 1, Column: 5},
+			expects: false,
+		},
+		{
+			t1:      token{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 6},
+			t2:      token{Type: tokenType("Identifier"), Value: "beats", Line: 1, Column: 5},
+			expects: true,
+		},
+		{
+			t1:      token{Type: tokenType("CloseCurly"), Value: "}", Line: 3, Column: 5},
+			t2:      token{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 6},
+			expects: false,
+		},
+	}
+
+	for _, test := range tests {
+		if res := test.t1.isEarlier(test.t2); res != test.expects {
+			t.Errorf("%v.isEarlier(%v) return unexpected. Got %t, Expected %t", test.t1, test.t2, res, test.expects)
+		}
+	}
+}
+
+func TestEarliestToken(t *testing.T) {
+	tokens := []token{
+		{Type: tokenType("Identifier"), Value: "beats", Line: 1, Column: 5},
+		{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 6},
+		{Type: tokenType("CloseCurly"), Value: "}", Line: 3, Column: 5},
+		{Type: tokenType("StringLiteral"), Value: "5044", Line: 2, Column: 17},
+	}
+	expected := token{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 6}
+
+	if res := earliestToken(tokens); !res.equal(expected) {
+		t.Errorf("Earliest token does not match expected. Got %v, Expected %v", res, expected)
 	}
 }

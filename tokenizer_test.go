@@ -10,11 +10,9 @@ func TestParseTokens(t *testing.T) {
 		input   string
 		expects []token
 	}{
-		{input: "input", expects: []token{{Type: tokenType("Identifier"), Value: "input", Line: 0, Column: 0, Index: 0}}},
-		{input: "{", expects: []token{{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 0, Index: 0}, {}}},
 		{input: "input {", expects: []token{
 			{Type: tokenType("Identifier"), Value: "input", Line: 0, Column: 0, Index: 0},
-			{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 6, Index: 0},
+			{Type: tokenType("Separator"), Value: "{", Line: 0, Column: 6, Index: 0},
 		}},
 		{input: `input {
     beats {
@@ -22,14 +20,14 @@ func TestParseTokens(t *testing.T) {
     }
 }`, expects: []token{
 			{Type: tokenType("Identifier"), Value: "input", Line: 0, Column: 0, Index: 0},
-			{Type: tokenType("OpenCurly"), Value: "{", Line: 0, Column: 6, Index: 6},
+			{Type: tokenType("Separator"), Value: "{", Line: 0, Column: 6, Index: 6},
 			{Type: tokenType("Identifier"), Value: "beats", Line: 1, Column: 4, Index: 12},
-			{Type: tokenType("OpenCurly"), Value: "{", Line: 1, Column: 10, Index: 18},
+			{Type: tokenType("Separator"), Value: "{", Line: 1, Column: 10, Index: 18},
 			{Type: tokenType("Identifier"), Value: "port", Line: 2, Column: 8, Index: 28},
-			{Type: tokenType("Arrow"), Value: "=>", Line: 2, Column: 13, Index: 33},
-			{Type: tokenType("StringLiteral"), Value: "\"5044\"", Line: 2, Column: 16, Index: 36},
-			{Type: tokenType("CloseCurly"), Value: "}", Line: 3, Column: 4, Index: 47},
-			{Type: tokenType("CloseCurly"), Value: "}", Line: 4, Column: 0, Index: 49},
+			{Type: tokenType("Operator"), Value: "=>", Line: 2, Column: 13, Index: 33},
+			{Type: tokenType("Literal"), Value: "\"5044\"", Line: 2, Column: 16, Index: 36},
+			{Type: tokenType("Separator"), Value: "}", Line: 3, Column: 4, Index: 47},
+			{Type: tokenType("Separator"), Value: "}", Line: 4, Column: 0, Index: 49},
 			{},
 		}},
 		{input: "1234", expects: []token{}},
@@ -37,10 +35,10 @@ func TestParseTokens(t *testing.T) {
 
 	tz := tokenizer{}
 	tz.addRule(rule{name: "Identifier", pattern: "[A-Za-z]+"})
-	tz.addRule(rule{name: "OpenCurly", pattern: "{"})
-	tz.addRule(rule{name: "CloseCurly", pattern: "}"})
-	tz.addRule(rule{name: "StringLiteral", pattern: `"[^"]*"`})
-	tz.addRule(rule{name: "Arrow", pattern: "=>"})
+	tz.addRule(rule{name: "Separator", pattern: "{"})
+	tz.addRule(rule{name: "Separator", pattern: "}"})
+	tz.addRule(rule{name: "Literal", pattern: `"[^"]*"`})
+	tz.addRule(rule{name: "Operator", pattern: "=>"})
 
 	for _, test := range tests {
 		// Setup Tokenizer

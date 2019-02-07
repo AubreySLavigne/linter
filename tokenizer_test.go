@@ -11,34 +11,33 @@ func TestParseTokens(t *testing.T) {
 		expects []token
 	}{
 		{input: "input {", expects: []token{
-			{Type: tokenType("Identifier"), Value: "input", Line: 0, Column: 0, Index: 0},
-			{Type: tokenType("Separator"), Value: "{", Line: 0, Column: 6, Index: 0},
+			{Type: identifier, Value: "input", Line: 0, Column: 0, Index: 0},
+			{Type: separator, Value: "{", Line: 0, Column: 6, Index: 0},
 		}},
 		{input: `input {
     beats {
         port => "5044"
     }
 }`, expects: []token{
-			{Type: tokenType("Identifier"), Value: "input", Line: 0, Column: 0, Index: 0},
-			{Type: tokenType("Separator"), Value: "{", Line: 0, Column: 6, Index: 6},
-			{Type: tokenType("Identifier"), Value: "beats", Line: 1, Column: 4, Index: 12},
-			{Type: tokenType("Separator"), Value: "{", Line: 1, Column: 10, Index: 18},
-			{Type: tokenType("Identifier"), Value: "port", Line: 2, Column: 8, Index: 28},
-			{Type: tokenType("Operator"), Value: "=>", Line: 2, Column: 13, Index: 33},
-			{Type: tokenType("Literal"), Value: "\"5044\"", Line: 2, Column: 16, Index: 36},
-			{Type: tokenType("Separator"), Value: "}", Line: 3, Column: 4, Index: 47},
-			{Type: tokenType("Separator"), Value: "}", Line: 4, Column: 0, Index: 49},
+			{Type: identifier, Value: "input", Line: 0, Column: 0, Index: 0},
+			{Type: separator, Value: "{", Line: 0, Column: 6, Index: 6},
+			{Type: identifier, Value: "beats", Line: 1, Column: 4, Index: 12},
+			{Type: separator, Value: "{", Line: 1, Column: 10, Index: 18},
+			{Type: identifier, Value: "port", Line: 2, Column: 8, Index: 28},
+			{Type: operator, Value: "=>", Line: 2, Column: 13, Index: 33},
+			{Type: literal, Value: "\"5044\"", Line: 2, Column: 16, Index: 36},
+			{Type: separator, Value: "}", Line: 3, Column: 4, Index: 47},
+			{Type: separator, Value: "}", Line: 4, Column: 0, Index: 49},
 			{},
 		}},
 		{input: "1234", expects: []token{}},
 	}
 
 	tz := tokenizer{}
-	tz.addRule(rule{name: "Identifier", pattern: "[A-Za-z]+"})
-	tz.addRule(rule{name: "Separator", pattern: "{"})
-	tz.addRule(rule{name: "Separator", pattern: "}"})
-	tz.addRule(rule{name: "Literal", pattern: `"[^"]*"`})
-	tz.addRule(rule{name: "Operator", pattern: "=>"})
+	tz.addRule(rule{name: identifier, pattern: "[A-Za-z]+"})
+	tz.addRule(rule{name: separator, pattern: "[{}]"})
+	tz.addRule(rule{name: literal, pattern: `"[^"]*"`})
+	tz.addRule(rule{name: operator, pattern: "=>"})
 
 	for _, test := range tests {
 		// Setup Tokenizer
@@ -59,7 +58,7 @@ func TestParseTokens(t *testing.T) {
 
 func TestInvalidRegexpRule(t *testing.T) {
 	tz := tokenizer{}
-	tz.addRule(rule{name: "Invalid Rule", pattern: `\`})
+	tz.addRule(rule{name: operator, pattern: `\`})
 
 	tz.source = "tokenize"
 
